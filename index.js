@@ -1,6 +1,6 @@
 // require('dotenv').config();
 const Discord = require('discord.js');
-const Enmap = require("enmap")
+// const Enmap = require("enmap")
 const { promisify } = require("util");
 
 const readdir = promisify(require("fs").readdir);

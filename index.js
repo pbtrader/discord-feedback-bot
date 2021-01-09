@@ -95,19 +95,3 @@ const init = async () => {
 };
 
 init()
-
-
-
-
-
-
-
-
-
-// bot.login(TOKEN);
-
-// bot.on('ready', () => {
-//   console.info(`Logged in as ${bot.user.tag}!`);
-// });
-
-

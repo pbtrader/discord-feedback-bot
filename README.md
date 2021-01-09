@@ -1,27 +1,18 @@
-# How to Build Your First Discord Bot with Node.js
+# Discord Bot for Music Feedback Servers
 
-Michiel Mulders shows you how to install and set up a new Discord bot, which is made easier thanks to the API offered by the Discord.js package.
+Lightweight bot to help automate some of the boring tasks of running a  music feedback server
 
-Link to article on SitePoint: [https://www.sitepoint.com/discord-bot-node-js/](https://www.sitepoint.com/discord-bot-node-js/)
-
-## Requirements
-
-- [Node.js](http://nodejs.org/)
-- [Discord](https://discordapp.com/) account
-
-## Installation Steps (if applicable)
-
+## Installation Steps
 1. Clone repo
 2. Run `npm install`
-3. Add Discord credentials in a `.env` file
+3. Add Discord credentials in a `.env` file (Additional info in the Discord Dev Portal - https://discord.com/developers/docs/intro)
 3. Run `node index.js`
-4. Interact with your Discord bot via your web browser
+nk to article on SitePoint: [https://www.sitepoint.com/discord-bot-node-js/](https://www.sitepoint.com/discord-bot-node-js/)
 
 ## License
 
-SitePoint's code archives and code examples are licensed under the MIT license.
+Copyright © 2021 Jacob Frieling
 
-Copyright © 2020 SitePoint
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

@@ -1,116 +1,113 @@
-require('dotenv').config();
+// require('dotenv').config();
 const Discord = require('discord.js');
-const bot = new Discord.Client();
-bot.commands = new Discord.Collection();
-const botCommands = require('./commands');
+const Enmap = require("enmap")
+const { promisify } = require("util");
 
-// Object.keys(botCommands).map(key => {
-//   bot.commands.set(botCommands[key].name, botCommands[key]);
+const readdir = promisify(require("fs").readdir);
+
+const addModules = client => {
+
+  client.logger = require("./util/Logger");
+  require("./modules/functions.js")(client);
+
+	require("./modules/feedback")(client);
+};
+
+// const addCommands = async client => {
+// 	// Aliases and commands are put in collections where they can be read from,
+// 	// catalogued, listed, etc.
+// 	client.commands = new Enmap();
+// 	client.aliases = new Enmap();
+
+// 	// Here we load **commands** into memory, as a collection, so they're accessible
+// 	// here and everywhere else.
+// 	const cmdFiles = await readdir("./commands/");
+// 	client.logger.log(`Loading a total of ${cmdFiles.length} commands.`);
+// 	cmdFiles.forEach(f => {
+// 		if (!f.endsWith(".js")) return;
+// 		const response = client.loadCommand(f);
+// 		if (response) console.log(response);
+//   });
+  
+// }
+
+// const addFilters = async client => {
+// 	client.filters = new Enmap();
+
+// 	// Subsequently, if not obviously, we load channel filters
+// 	// Filters are stored with the channelNames as the key, this is important!
+// 	// You must use help.name for the name.
+// 	const fltrFiles = await readdir("./filters/");
+// 	client.logger.log(`Loading a total of ${fltrFiles.length} Filters.`);
+// 	fltrFiles.forEach(f => {
+// 		if (!f.endsWith(".js")) return;
+// 		const response = client.loadFilter(f);
+// 		if (response) console.log(response);
+// 	});
+// };
+
+const addEventListeners = async client => {
+	// Then we load events, which will include our message and ready event.
+	const evtFiles = await readdir("./events/");
+	client.logger.log(`Loading a total of ${evtFiles.length} events.`);
+	evtFiles.forEach(file => {
+		const eventName = file.split(".")[0];
+		const event = require(`./events/${file}`);
+		// This line is awesome by the way. Just sayin'.
+		client.on(eventName, event.bind(null, client));
+		delete require.cache[require.resolve(`./events/${file}`)];
+	});
+};
+
+
+const init = async () => {
+	const client = new Discord.Client();
+
+	// Load client (bot) config.
+	//
+	// client.config.token contains the bot's token
+	// client.config.prefix contains the message prefix
+	const configPath = process.env.CONFIG_PATH || "./config.js";
+	client.config = require(configPath);
+
+	// Check for required config and exit with error if missing.
+	// if (!client.config.roleIds) {
+	// 	console.error(new TypeError("Config files is missing `roleIds` property"));
+	// 	process.exitCode = 1;
+	// 	return;
+	// }
+
+	addModules(client);
+
+	// Now we integrate the use of Evie's awesome Enhanced Map module, which
+	// essentially saves a collection to disk. This is great for per-server configs,
+	// and makes things extremely easy for this purpose.
+	// client.settings = new Enmap({ name: "settings"});
+
+	// await addCommands(client);
+	// await addFilters(client);
+	await addEventListeners(client);
+
+	// addPermissions(client);
+
+	// Log into Discord.
+	client.login(client.config.token);
+};
+
+init()
+
+
+
+
+
+
+
+
+
+// bot.login(TOKEN);
+
+// bot.on('ready', () => {
+//   console.info(`Logged in as ${bot.user.tag}!`);
 // });
 
-const TOKEN = process.env.TOKEN;
-const today = new Date();
 
-bot.login(TOKEN);
-
-bot.on('ready', () => {
-  console.info(`Logged in as ${bot.user.tag}!`);
-});
-
-bot.on('message', async (msg) => {
-
-  // only doing this for the feedback channel for now
-  if (msg.channel.name !== "feedback") {
-    return;
-  }
-
-  const msgContent = msg.content;
-  // true if the message contains a URL
-  const hasLink = containsUrl(msgContent);
-  // TODO also check if they uploaded a file
-
-  // true if the message contains an @user mention (should also be true if the user is replying to someone)
-  const hasMention = containsMention(msg)
-
-  // User is posting a new track for feedback
-  if (hasLink) {
-    // TODO: user has dropped a link, make sure they have posted good feedback in the last 2 months
-    // const channelId = msg.reference.channelID;
-    // const joinDate = msg.member.joinedAt;
-    const twoMonthsAgo = new Date();
-    twoMonthsAgo.setMonth(today.getMonth() - 2);
-
-
-    const last100Messages = await msg.channel.fetch({limit: 100});
-
-
-    const messageMap = last100Messages.messages.cache;
-    let hasLeftGoodFeeback = false;
-    for (let message of messageMap) {
-      const messageContent = message[1].content;
-      if (isGoodFeedback(messageContent)) {
-        // user has left good feedback, let them post the link
-        hasLeftGoodFeeback = true;
-        return;
-      } 
-    }
-
-    // user has not left good feedback
-    msg.reply(`You haven't left good feedback in a while. Refer to #rules and the pinned messages
-    in this channel for an example of what constitiutes good feedback. You can post a link once
-    you leave good feedback.`);
-    msg.delete()
-    return;
-
-
-  }
-
-  if (hasMention) {
-    const wordCount = msgContent.split(" ").length;
-    if (wordCount < 10) {
-      msg.reply(`You can do better! Make sure you leave some more thorough feedback if you want to post a link`);
-      return;
-    }
-  //  else if (wordCount > 50) {
-  //    // leave an emoji
-  //    msg.reply(`Niceeeeee`)
-  //   return;
-  //   }
-  }
-});
-
-
-/**
- * Check if the given string looks like a url
- * @param {String} text 
- * @returns {Boolean} true if the text is a url, false otherwise
- */
-function containsUrl(text){
-  const matchingText = text.match(/(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/igm);
-  return (matchingText && matchingText.length > 0)
-}
-
-
-function containsMention(msg) {
-  // this shouldn't happen, but don't do anything if there are no mentions in this message
-  if (!msg || !msg.mentions) {
-    return false;
-  }
-  
-  if (msg.mentions.users.size === 1) {
-    return true;
-  }
-  return false;
-}
-
-
-/**
- * Return true if the post was good feedback (more than 20 words), false otherwise
- * @param {String} message 
- */
-function isGoodFeedback(message) {
-  const wordCount = message.split(" ").length;
-
-  return (wordCount >= 20);
-
-}

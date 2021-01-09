@@ -46,8 +46,6 @@ module.exports = async (client, msg) => {
       const hasLink = containsUrl(msgContent);
       const hasAttachment = (msg.attachments && msg.attachments.size > 0)
 
-      // true if the message contains an @user mention (should also be true if the user is replying to someone)
-      // const hasMention = containsMention(msg)
     
       // User is posting a new track for feedback
       if (hasLink || hasAttachment) {
@@ -85,15 +83,6 @@ module.exports = async (client, msg) => {
         const goodFeedback = isGoodFeedback(msgContent);
         if (!goodFeedback) {
           msg.reply(`Please leave some more contructive feedback! Refer to the #rules channel and examples pinned in this channel`);
-          return;
-        }
-      }
-    
-      if (hasMention) {
-        const wordCount = msgContent.split(" ").length;
-        if (wordCount < 20) {
-          msg.reply(`The feedback you gave is too short, please leave some more constructive feedback before posting a link.
-          See the pinned posts in this channel for an example.`);
           return;
         }
       }

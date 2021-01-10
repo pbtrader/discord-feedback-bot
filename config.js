@@ -11,14 +11,16 @@ const config = {
     // Bot Support, level 8 by default. Array of user ID strings
     "support": [],
   
-    // Your Bot's Token. Available on https://discordapp.com/developers/applications/me
-    "token":  process.env.TOKEN,
+    // Bot's Token. Available on https://discordapp.com/developers/applications/me
+    // Use the separate local bot for local testing
+    "token":  process.env.IS_LOCAL ? process.env.TOKEN_LOCAL : process.env.TOKEN,
   
     // Default per-server settings. New guilds have these settings. 
   
     // DO NOT LEAVE ANY OF THESE BLANK, AS YOU WILL NOT BE ABLE TO UPDATE THEM
     // VIA COMMANDS IN THE GUILD.
     
+    // this stuff was copied from the edmproduction discord bot
     "defaultSettings" : {
       "prefix": ["!"],
       "modLogChannel": "mod-log",
@@ -30,7 +32,7 @@ const config = {
   
       "systemNotice": "true", // This gives a notice when a user tries to run a command that they do not have permission to use.
       "welcomeChannel": "intro",
-      "welcomeMessage": "Welcome to EDMP {{user}}! Please make sure to tell one of the staff what DAW you use to make music by tagging \`@Staff\` in order to get access to other rooms!",
+      "welcomeMessage": "Welcome!",
       "welcomeEnabled": "true"
     },
   

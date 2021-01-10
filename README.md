@@ -1,13 +1,13 @@
 # Discord Bot for Music Feedback Servers
 
-Lightweight bot to help automate some of the boring tasks of running a  music feedback server
+Lightweight bot to help automate some of the boring tasks of running a music feedback server
 
 ## Installation Steps
 1. Clone repo
 2. Run `npm install`
 3. Add Discord credentials in a `.env` file (Additional info in the Discord Dev Portal - https://discord.com/developers/docs/intro)
 3. Run `node index.js`
-nk to article on SitePoint: [https://www.sitepoint.com/discord-bot-node-js/](https://www.sitepoint.com/discord-bot-node-js/)
+
 
 ## License
 

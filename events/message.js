@@ -1,15 +1,19 @@
 const FEEDBACK_COMMAND = "$feedback";
 const TRACK_COMMAND = "$track";
+const SCORE_COMMAND = "$score";
+const HELP_COMMAND = "$help";
 
 module.exports = async (client, msg) => {
   let command;
   let leavingFeedback = false;
   let postingTrack = false;
+  let checkingScore = false;
+  let gettingHelp;
 
   let reply;
 
-    // only works in the feedback channel
-    if (msg.channel.name !== "feedback") {
+    // only works in the feedback channel or bot-testing channel
+    if (msg.channel.name !== "bot-testing" || msg.channel.name !== "feedback") {
         return;
       }
       
@@ -22,7 +26,7 @@ module.exports = async (client, msg) => {
         return;
       }
 
-      // !feedback and !track commands must start with an exclamation, otherwise they will not be counted
+      // $feedback and $track commands must start with an exclamation, otherwise they will not be counted
       if (msgContent[0] === "$") {
         command = getCommand(msgContent)
       }
@@ -36,6 +40,14 @@ module.exports = async (client, msg) => {
           postingTrack = true;
           break;
         }
+        case SCORE_COMMAND: {
+          checkingScore = true;
+          break;
+        }
+        case HELP_COMMAND: {
+          gettingHelp = true;
+          break;
+        }
         default: {
           // user is posting something that doesn't meet a valid command. Let them post it but it won't count
           break;
@@ -46,43 +58,77 @@ module.exports = async (client, msg) => {
       const hasLink = containsUrl(msgContent);
       const hasAttachment = (msg.attachments && msg.attachments.size > 0)
 
-    
-      // User is posting a new track for feedback
-      if (hasLink || hasAttachment) {
-        if (!postingTrack) {
-          // exit and holler if the user didn't use the $track command
-          reply = "Did you forget the $track command? Please refer to the rules for posting tracks";
-          msg.reply(reply);
-          msg.delete();
-          return;
-        }
+      const hasTrackLinkOrAttachment = hasLink || hasAttachment;
 
-        // otherwise user correctly used the track command. Make sure they have posted sufficient feedback in the
-        // past 100 messages
     
+      if (gettingHelp) {
+        msg.reply(`Before asking for feedback, make sure you leave some!
+        
+          To leave feedback, type "$feedback here is some super helpful feedback". Be sure to be constructive and offer some concrete ideas for your fellow producers!
+
+          Then, post a track with "$track http://soundcloud.com/your-track-id"
+
+          You can check your score at any time by typing "
+          "
+
+          If you don't follow these instructions, your links will be deleted!
+        
+        `)
+
+        return;
+      }
+
+      // lets see if we're checking scores
+      if (checkingScore) {
         const last100Messages = await msg.channel.messages.fetch({limit: 100});
         const userMessages = last100Messages.filter(msg => msg.author.id === authorId && msg.deleted === false);
-        const {feedbackCount, trackCount} = checkRecentMessages(userMessages);
+        const {feedbackCount, trackCount} = checkRecentMessages(userMessages, "score");
+
+        msg.reply(`recent feedback count: ${feedbackCount}, recent track count: ${trackCount}`)
+        return;
+      }
+
+      // if use is leaving feedback, make sure it is long enough and holler if it is not
+      if (leavingFeedback) {
+        const goodFeedback = isGoodFeedback(msgContent);
+        if (!goodFeedback) {
+          msg.reply(`Please leave some more contructive feedback! Refer to the examples pinned in this channel.`);
+          msg.react("👎")
+          return;
+        } else {
+          // they left sufficient feedback, so stick an emoji on there;
+          msg.react("👍")
+          return;
+        }
+      }
+
+      // otherwise, make sure user posted their track correctly
+      if (hasTrackLinkOrAttachment && !postingTrack) {
+        reply = `Did you forget the $track command? Refer to the pinned messages or type "$help" for some more info.`;
+        msg.delete();
+        msg.reply(reply);
+        return;
+      } else if (postingTrack && !hasTrackLinkOrAttachment) {
+        // user used the track command without a link
+        reply = `Did you forget to include a link or file? Refer to the pinned messages or type "$help" for some more info.`;
+        msg.delete();
+        msg.reply(reply);
+        return;
+      } else if (postingTrack && hasTrackLinkOrAttachment) {
+        // hooray, they did it correctly! Now let's make sure they've left enough good feedback recently.
+    
+        const last50Messages = await msg.channel.messages.fetch({limit: 50});
+        const userMessages = last50Messages.filter(msg => msg.author.id === authorId && msg.deleted === false);
+        const {feedbackCount, trackCount} = checkRecentMessages(userMessages, "track");
 
         if (feedbackCount > trackCount) {
           // user has left enough good feedback recently, return here and let them post the track;
           return
         } else {
           // user has not posted enough feedback, holler at them and delete their track
-          reply = `You have posted ${trackCount} tracks and ${feedbackCount} pieces of good feedback recently. Leave more feedback before posting a track. Refer to #rules and the pinned messages in this channel for an example of what constitiutes good feedback.`
+          reply = `Please post some more feedback before sharing a track. Type "$score" to check your scores, or "$help" for more info.`
           msg.reply(reply);
           msg.delete();
-          return;
-        }  
-    
-      }
-
-      // user is not posting a track, check if they are posting feedback
-
-      if (leavingFeedback) {
-        const goodFeedback = isGoodFeedback(msgContent);
-        if (!goodFeedback) {
-          msg.reply(`Please leave some more contructive feedback! Refer to the #rules channel and examples pinned in this channel`);
           return;
         }
       }
@@ -109,9 +155,14 @@ module.exports = async (client, msg) => {
     return (wordCount >= 20);
   }
 
-  function checkRecentMessages(messages) {
+
+  function checkRecentMessages(messages, type) {
     let feedbackCount = 0;
-    let trackCount = 0;
+
+    // if the user is checking their score, we can start the track count at 0.
+    // if the user is posting a new track, start at -1 so we don't include their newly posted link in the counts
+    // (otherwise they'll get yelled at even if they posted feedback already)
+    let trackCount = type === "track" ? -1 : 0
 
     for (let message of messages) {
       const messageContent = message[1].content;

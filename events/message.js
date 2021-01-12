@@ -3,6 +3,8 @@ const TRACK_COMMAND = "$track";
 const SCORE_COMMAND = "$score";
 const HELP_COMMAND = "$help";
 
+const ALLOWED_CHANNELS = ["feedback", "bot-testing"]
+
 module.exports = async (client, msg) => {
   let command;
   let leavingFeedback = false;
@@ -13,11 +15,9 @@ module.exports = async (client, msg) => {
   let reply;
 
     // only works in the feedback channel or bot-testing channel
-
-    if (msg.channel.name !== ("bot-testing" || "feedback")) {
-        return;
-      }
-      
+    if (!ALLOWED_CHANNELS.includes(msg.channel.name)) {
+      return;
+    } 
       // get message content and author
       const msgContent = msg.content;
       const authorId = msg.author.id

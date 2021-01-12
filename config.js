@@ -13,7 +13,8 @@ const config = {
   
     // Bot's Token. Available on https://discordapp.com/developers/applications/me
     // Use the separate local bot for local testing
-    "token":  process.env.IS_LOCAL ? process.env.TOKEN_LOCAL : process.env.TOKEN,
+    // "token":  process.env.IS_LOCAL ? process.env.TOKEN_LOCAL : process.env.TOKEN,
+    "token": process.env.TOKEN,
   
     // Default per-server settings. New guilds have these settings. 
   

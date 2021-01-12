@@ -13,7 +13,8 @@ module.exports = async (client, msg) => {
   let reply;
 
     // only works in the feedback channel or bot-testing channel
-    if (msg.channel.name !== "bot-testing" || msg.channel.name !== "feedback") {
+
+    if (msg.channel.name !== ("bot-testing" || "feedback")) {
         return;
       }
       

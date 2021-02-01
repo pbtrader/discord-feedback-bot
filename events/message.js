@@ -69,8 +69,7 @@ module.exports = async (client, msg) => {
 
           Then, post a track with "$track http://soundcloud.com/your-track-id"
 
-          You can check your score at any time by typing "
-          "
+          You can check your score at any time by typing "$score"
 
           If you don't follow these instructions, your links will be deleted!
         
@@ -127,7 +126,7 @@ module.exports = async (client, msg) => {
           return
         } else {
           // user has not posted enough feedback, holler at them and delete their track
-          reply = `Please post some more feedback before sharing a track. Type "$score" to check your scores, or "$help" for more info.`
+          reply = `Please post some more feedback before sharing a track. Your current score is Feedback: ${feedbackCount}, Tracks: ${trackCount}. Type "$help" for more info.`
           msg.reply(reply);
           msg.delete();
           return;
@@ -163,7 +162,7 @@ module.exports = async (client, msg) => {
     // if the user is checking their score, we can start the track count at 0.
     // if the user is posting a new track, start at -1 so we don't include their newly posted link in the counts
     // (otherwise they'll get yelled at even if they posted feedback already)
-    let trackCount = type === "track" ? -1 : 0
+    let trackCount = (type === "track") ? -1 : 0
 
     for (let message of messages) {
       const messageContent = message[1].content;
